@@ -1,6 +1,6 @@
 const axios = require('axios').default
 
-const NOVA_URL = 'compute/v2.1'
+const NOVA_URL = UTILS.combineURLs(process.env.OPENSTACK_URL, 'compute/v2.1')
 const RESIZE_CHECK_INTERVAL_TIME = 2000
 
 // List of all flavors with details

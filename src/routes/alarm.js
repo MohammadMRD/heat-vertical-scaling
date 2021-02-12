@@ -1,6 +1,6 @@
 const express = require('express')
 const camelCaseRequestKeys = require('../middleware/camelCaseRequestKeys')
-const { identity } = require('../openstack')
+const { identity, aodh } = require('../openstack')
 
 function getAlarmRoutes() {
   const router = express.Router()
@@ -11,6 +11,8 @@ function getAlarmRoutes() {
 }
 
 async function alarm(req, res) {
+  const { alarmId } = req.body
+
   const token = await identity.getToken({
     name: process.env.OPENSTACK_USERNAME,
     password: process.env.OPENSTACK_PASSWORD,
@@ -20,7 +22,9 @@ async function alarm(req, res) {
     projectDomainId: process.env.OPENSTACK_PROJECT_DOMAIN_ID,
   })
 
-  console.log({ token })
+  const alarm = await aodh.getAlarm(token, alarmId)
+
+  console.log(alarm)
 
   res.send()
 }
