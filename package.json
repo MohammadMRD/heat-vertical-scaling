@@ -1,0 +1,49 @@
+{
+  "name": "heat-vertical-scaling",
+  "version": "0.1.0",
+  "main": "server.js",
+  "description": "Vertical scaling using Openstack Heat",
+  "author": "Mohammad Moradi <MohammadMRD@hotmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon .",
+    "start": "cross-env NODE_ENV=production node .",
+    "prettier": "prettier --config .prettierrc.json --write src/"
+  },
+  "homepage": "https://github.com/MohammadMRD/heat-vertical-scaling#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MohammadMRD/heat-vertical-scaling.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MohammadMRD/heat-vertical-scaling/issues"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cross-env": "^7.0.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
+    "lodash": "^4.17.20",
+    "loglevel": "^1.7.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "eslint": "^7.19.0",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-promise": "^4.3.1",
+    "husky": "^5.0.9",
+    "nodemon": "^2.0.7",
+    "prettier": "^2.2.1",
+    "pretty-quick": "^3.1.0"
+  }
+}
