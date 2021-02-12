@@ -2,7 +2,7 @@ const axios = require('axios').default
 
 const IDENTITY_URL = UTILS.combineURLs(process.env.OPENSTACK_URL, 'identity/v3')
 
-const authenticate = async (user, scope) => {
+async function authenticate(user, scope) {
   const TOKEN_URL = UTILS.combineURLs(IDENTITY_URL, '/auth/tokens')
   const body = { auth: {} }
 
@@ -33,7 +33,7 @@ const authenticate = async (user, scope) => {
 
 /**
  * @typedef AuthenticateOptions
- * @property {string} endpint
+ * @property {string} endpoint
  * @property {string} name
  * @property {string} password
  * @property {string} userDomainId
@@ -51,7 +51,7 @@ const authenticate = async (user, scope) => {
  * @param {AuthenticateOptions} opts
  * @return {Promise<string>} token
  */
-exports.getToken = async (opts) => {
+exports.getToken = async function (opts) {
   let user = null
   let scope = null
 
@@ -61,9 +61,15 @@ exports.getToken = async (opts) => {
       password: opts.password,
     }
 
-    if (opts.userDomainName) { user.domain = { name: opts.userDomainName } }
-    if (opts.userDomainId) { user.domain = { id: opts.userDomainId } }
-    if (opts.userTenantName) { user.tenantName = opts.userTenantName }
+    if (opts.userDomainName) {
+      user.domain = { name: opts.userDomainName }
+    }
+    if (opts.userDomainId) {
+      user.domain = { id: opts.userDomainId }
+    }
+    if (opts.userTenantName) {
+      user.tenantName = opts.userTenantName
+    }
   } else if (opts.token) {
     user = opts.token
   } else {

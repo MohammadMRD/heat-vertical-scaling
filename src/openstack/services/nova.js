@@ -4,7 +4,7 @@ const NOVA_URL = UTILS.combineURLs(process.env.OPENSTACK_URL, 'compute/v2.1')
 const RESIZE_CHECK_INTERVAL_TIME = 2000
 
 // List of all flavors with details
-exports.getFlavors = async function(token) {
+exports.getFlavors = async function (token) {
   const FLAVORS_URL = UTILS.combineURLs(NOVA_URL, '/flavors/detail')
 
   const res = await axios({
@@ -17,7 +17,7 @@ exports.getFlavors = async function(token) {
 }
 
 // Get server's info
-exports.getServer = async function(token, serverId) {
+exports.getServer = async function (token, serverId) {
   const SERVER_URL = UTILS.combineURLs(NOVA_URL, `servers/${serverId}`)
 
   const res = await axios({
@@ -30,7 +30,7 @@ exports.getServer = async function(token, serverId) {
 }
 
 // Resize server
-exports.resizeServer = async function(token, serverId, flavorId, status) {
+exports.resizeServer = async function (token, serverId, flavorId, status) {
   const RESIZE_URL = UTILS.combineURLs(NOVA_URL, `servers/${serverId}/action`)
 
   if (status !== 'VERIFY_RESIZE') {

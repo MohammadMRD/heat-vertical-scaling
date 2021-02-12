@@ -3,21 +3,21 @@ const logger = require('loglevel')
 require('express-async-errors')
 const { getRoutes } = require('./routes')
 
-function startServer ({ port = process.env.PORT } = {}) {
+function startServer({ port = process.env.PORT } = {}) {
   const app = express()
 
   app.use(express.json())
   app.use('/', getRoutes())
   app.use(errorMiddleware)
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const server = app.listen(port, () => {
       logger.info(`Listening on port ${server.address().port}`)
 
       const originalClose = server.close.bind(server)
 
       server.close = () => {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           originalClose(resolve)
         })
       }
@@ -28,7 +28,7 @@ function startServer ({ port = process.env.PORT } = {}) {
   })
 }
 
-function errorMiddleware (error, req, res, next) {
+function errorMiddleware(error, req, res, next) {
   if (res.headersSent) {
     next(error)
   } else {
@@ -36,19 +36,19 @@ function errorMiddleware (error, req, res, next) {
     res.status(500)
     res.json({
       message: error.message,
-      ...(process.env.NODE_ENV === 'production' ? null : { stack: error.stack })
+      ...(process.env.NODE_ENV === 'production' ? null : { stack: error.stack }),
     })
   }
 }
 
-function setupCloseOnExit (server) {
-  async function exitHandler (options = {}) {
+function setupCloseOnExit(server) {
+  async function exitHandler(options = {}) {
     await server
       .close()
       .then(() => {
         logger.info('Server successfully closed')
       })
-      .catch(e => {
+      .catch((e) => {
         logger.warn('Something went wrong closing the server', e.stack)
       })
     if (options.exit) process.exit()

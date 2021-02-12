@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "nodemon .",
     "start": "cross-env NODE_ENV=production node .",
-    "prettier": "prettier --config .prettierrc.json --write src/**/*.js"
+    "prettier": "prettier --config .prettierrc.json --write src/"
   },
   "homepage": "https://github.com/MohammadMRD/heat-vertical-scaling#readme",
   "repository": {
