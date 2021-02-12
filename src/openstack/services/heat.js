@@ -15,10 +15,10 @@ exports.getStack = async function (token, projectId, stackId) {
   return res.data.stacks[0]
 }
 
-exports.getStackAutoScalingServers = async function (token, projectId, stackId, stackName) {
+exports.getStackAutoScalingServers = async function (token, projectId, stackId, stackName, group) {
   const AUTO_SCALING_SERVERS_URL = UTILS.combineURLs(
     HEAT_URL,
-    `${projectId}/stacks/${stackName}/${stackId}/outputs/refs`,
+    `${projectId}/stacks/${stackName}/${stackId}/outputs/${group}_refs`,
   )
 
   const res = await axios({

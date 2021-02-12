@@ -48,7 +48,7 @@ exports.resizeServer = async function (token, serverId, flavorId, status) {
   }
 
   let serverStatus = ''
-  while (serverStatus === 'VERIFY_RESIZE') {
+  while (serverStatus !== 'VERIFY_RESIZE') {
     await UTILS.delay(RESIZE_CHECK_INTERVAL_TIME)
     const { status } = await exports.getServer(token, serverId)
     serverStatus = status
