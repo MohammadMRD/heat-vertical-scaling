@@ -1,0 +1,10 @@
+{
+  "eslint.validate": ["javascript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": false,
+  },
+  "editor.formatOnSave": false,
+  "files.eol": "\n",
+  "git.enableCommitSigning": false
+}
