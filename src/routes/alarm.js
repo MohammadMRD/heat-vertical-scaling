@@ -27,32 +27,28 @@ async function alarm(req, res) {
   const alarmRules = alarm[`${alarm.type}_rule`]
   const stackId = JSON.parse(alarmRules.query)['='].server_group
 
-  const { stack_name: stackName } = await heat.getStack(token, projectId, stackId)
-  const autoScalingServersIds = await heat.getStackAutoScalingServers(token, projectId, stackId, stackName, group)
+  const allServers = await nova.getServers(token)
   const flavors = await nova.getFlavors(token)
 
-  if (Array.isArray(autoScalingServersIds)) {
-    const serversRequests = autoScalingServersIds.map(async (id) => await nova.getServer(token, id))
-    const servers = await Promise.all(serversRequests)
-    const flavorsIndex = servers.map(({ flavor }) =>
-      reqFlavorsList.findIndex((f) => [flavor.id, flavor.name].includes(f)),
-    )
+  const servers = allServers?.filter(server => server.metadata?.['metering.server_group'] === stackId) || []
+  const flavorsIndex = servers.map(({ flavor }) =>
+    reqFlavorsList.findIndex((f) => [flavor.id, flavor.name].includes(f)),
+  )
 
-    const serverIndex = flavorsIndex.reduce(
-      (sfIndex, flavorIndex, currentIndex) =>
-        (action === 'up' ? flavorsIndex[sfIndex] > flavorIndex : flavorsIndex[sfIndex] < flavorIndex)
-          ? currentIndex
-          : sfIndex,
-      0,
-    )
+  const serverIndex = flavorsIndex.reduce(
+    (sfIndex, flavorIndex, currentIndex) =>
+      (action === 'up' ? flavorsIndex[sfIndex] > flavorIndex : flavorsIndex[sfIndex] < flavorIndex)
+        ? currentIndex
+        : sfIndex,
+    0,
+  )
 
-    const nextFlavorIndex = flavorsIndex[serverIndex] + (action === 'up' ? 1 : -1)
-    if (nextFlavorIndex >= 0 && nextFlavorIndex < reqFlavorsList.length) {
-      const { id: nextFlavorId, status } = flavors.find(({ id, name }) =>
-        [id, name].includes(reqFlavorsList[nextFlavorIndex]),
-      )
-      await nova.resizeServer(token, servers[serverIndex].id, nextFlavorId, status)
-    }
+  const nextFlavorIndex = flavorsIndex[serverIndex] + (action === 'up' ? 1 : -1)
+  if (nextFlavorIndex >= 0 && nextFlavorIndex < reqFlavorsList.length) {
+    const { id: nextFlavorId, status } = flavors.find(({ id, name }) =>
+      [id, name].includes(reqFlavorsList[nextFlavorIndex]),
+    )
+    await nova.resizeServer(token, servers[serverIndex].id, nextFlavorId, status)
   }
 
   res.send()
