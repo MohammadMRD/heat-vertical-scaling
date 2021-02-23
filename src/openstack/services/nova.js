@@ -29,6 +29,19 @@ exports.getServer = async function (token, serverId) {
   return res.data.server
 }
 
+// Get all servers
+exports.getServers = async function (token) {
+  const SERVER_URL = UTILS.combineURLs(NOVA_URL, `servers/detail`)
+
+  const res = await axios({
+    method: 'GET',
+    url: SERVER_URL,
+    headers: { 'X-Auth-Token': token },
+  })
+
+  return res.data.servers
+}
+
 // Resize server
 exports.resizeServer = async function (token, serverId, flavorId, status) {
   const RESIZE_URL = UTILS.combineURLs(NOVA_URL, `servers/${serverId}/action`)
