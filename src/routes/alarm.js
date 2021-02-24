@@ -1,6 +1,6 @@
 const express = require('express')
 const camelCaseRequestKeys = require('../middleware/camelCaseRequestKeys')
-const { identity, aodh, nova, heat } = require('../openstack')
+const { identity, aodh, nova } = require('../openstack')
 
 function getAlarmRoutes() {
   const router = express.Router()
@@ -12,7 +12,7 @@ function getAlarmRoutes() {
 
 async function alarm(req, res) {
   const { alarmId } = req.body
-  const { action, flavors: reqFlavorsList, group = '' } = req.query
+  const { action, flavors: reqFlavorsList, group  } = req.query
 
   const token = await identity.getToken({
     name: process.env.OPENSTACK_USERNAME,
@@ -30,7 +30,8 @@ async function alarm(req, res) {
   const allServers = await nova.getServers(token)
   const flavors = await nova.getFlavors(token)
 
-  const servers = allServers?.filter(server => server.metadata?.['metering.server_group'] === stackId) || []
+  const servers = allServers?.filter(server => server.metadata?.['metering.server_group'] === stackId && server.metadata?.['metering.server_group_name'] === group) || []
+
   const flavorsIndex = servers.map(({ flavor }) =>
     reqFlavorsList.findIndex((f) => [flavor.id, flavor.name].includes(f)),
   )

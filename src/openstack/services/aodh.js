@@ -1,6 +1,6 @@
 const axios = require('axios').default
 
-const AODH_URL = UTILS.combineURLs(process.env.OPENSTACK_URL + ':8042', 'v2')
+const AODH_URL = process.env.OPENSTACK_URL + process.env.AODH_URL
 
 exports.getAlarm = async function (token, alarmId) {
   const ALARM_URL = UTILS.combineURLs(AODH_URL, `alarms/${alarmId}`)
