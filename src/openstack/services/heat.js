@@ -1,6 +1,6 @@
 const axios = require('axios').default
 
-const HEAT_URL = UTILS.combineURLs(process.env.OPENSTACK_URL, 'heat-api/v1')
+const HEAT_URL = process.env.OPENSTACK_URL + process.env.HEAT_URL
 
 exports.getStack = async function (token, projectId, stackId) {
   const STACK_URL = UTILS.combineURLs(HEAT_URL, `${projectId}/stacks`)

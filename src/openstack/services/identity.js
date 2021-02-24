@@ -1,6 +1,6 @@
 const axios = require('axios').default
 
-const IDENTITY_URL = UTILS.combineURLs(process.env.OPENSTACK_URL, 'identity/v3')
+const IDENTITY_URL = process.env.OPENSTACK_URL + process.env.IDENTITY_URL
 
 async function authenticate(user, scope) {
   const TOKEN_URL = UTILS.combineURLs(IDENTITY_URL, '/auth/tokens')
