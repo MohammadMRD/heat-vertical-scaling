@@ -1,5 +1,6 @@
 const express = require('express')
 const logger = require('loglevel')
+const morgan = require('morgan')
 require('express-async-errors')
 const { getRoutes } = require('./routes')
 
@@ -7,6 +8,7 @@ function startServer({ port = process.env.PORT } = {}) {
   const app = express()
 
   app.use(express.json())
+  app.use(morgan('tiny'))
   app.use('/', getRoutes())
   app.use(errorMiddleware)
 
