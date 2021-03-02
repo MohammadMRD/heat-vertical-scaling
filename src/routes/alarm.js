@@ -29,12 +29,10 @@ async function alarm(req, res) {
 
   const allServers = await nova.getServers(token)
   const flavors = await nova.getFlavors(token)
+  const reqFlavors = reqFlavorsList.map(f => flavors.find(flavor => [flavor.id, flavor.name].includes(f)) || {})
 
   const servers = allServers?.filter(server => server.metadata?.['metering.server_group'] === stackId && server.metadata?.['metering.server_group_name'] === group) || []
-
-  const flavorsIndex = servers.map(({ flavor }) =>
-    reqFlavorsList.findIndex((f) => [flavor.id, flavor.name].includes(f)),
-  )
+  const flavorsIndex = servers.map(({ flavor }) => reqFlavors.findIndex((f) => flavor.id === f.id))
 
   const serverIndex = flavorsIndex.reduce(
     (sfIndex, flavorIndex, currentIndex) =>
