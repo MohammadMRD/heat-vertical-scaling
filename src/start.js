@@ -3,14 +3,17 @@ const logger = require('loglevel')
 const morgan = require('morgan')
 require('express-async-errors')
 const { getRoutes } = require('./routes')
+const { initDb, getDb } = require('./db')
 
-function startServer({ port = process.env.PORT } = {}) {
+async function startServer({ port = process.env.PORT } = {}) {
   const app = express()
 
   app.use(express.json())
   app.use(morgan('tiny'))
   app.use('/', getRoutes())
   app.use(errorMiddleware)
+
+  await initDb()
 
   return new Promise((resolve) => {
     const server = app.listen(port, () => {

@@ -106,3 +106,6 @@ dist
 # Editor
 .vscode/*
 !.vscode/settings.json
+
+# Temp DB
+db.json
