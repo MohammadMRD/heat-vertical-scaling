@@ -1,6 +1,7 @@
 const express = require('express')
 const camelCaseRequestKeys = require('../middleware/camelCaseRequestKeys')
 const { identity, aodh, nova } = require('../openstack')
+const { getDb } = require('../db')
 
 function getAlarmRoutes() {
   const router = express.Router()
@@ -12,7 +13,8 @@ function getAlarmRoutes() {
 
 async function alarm(req, res) {
   const { alarmId } = req.body
-  const { action, flavors: reqFlavorsList, group  } = req.query
+  let { action, flavors: reqFlavorsList, group: groupName, cooldown = 0 } = req.query
+  cooldown = Math.max(0, cooldown)
 
   const token = await identity.getToken({
     name: process.env.OPENSTACK_USERNAME,
@@ -27,13 +29,22 @@ async function alarm(req, res) {
   const alarmRules = alarm[`${alarm.type}_rule`]
   const stackId = JSON.parse(alarmRules.query)['='].server_group
 
+  const db = getDb()
+  const { updatedAt, scaleInProgress } = db.get(`${stackId}.${groupName}`)?.value() || {}
+  const elapsedTime = Math.round((new Date() - new Date(updatedAt)) / 1000)
+
+  if (scaleInProgress || cooldown > elapsedTime) {
+    res.send('Already updated')
+    return
+  }
+
+  db.set(`${stackId}.${groupName}.scaleInProgress`, true).write()
+
   const allServers = await nova.getServers(token)
   const flavors = await nova.getFlavors(token)
   const reqFlavors = reqFlavorsList.map(f => flavors.find(flavor => [flavor.id, flavor.name].includes(f)) || {})
-
-  const servers = allServers?.filter(server => server.metadata?.['metering.server_group'] === stackId && server.metadata?.['metering.server_group_name'] === group) || []
+  const servers = allServers?.filter(server => server.metadata?.[groupName] === stackId) || []
   const flavorsIndex = servers.map(({ flavor }) => reqFlavors.findIndex((f) => flavor.id === f.id))
-
   const serverIndex = flavorsIndex.reduce(
     (sfIndex, flavorIndex, currentIndex) =>
       (action === 'up' ? flavorsIndex[sfIndex] > flavorIndex : flavorsIndex[sfIndex] < flavorIndex)
@@ -50,6 +61,7 @@ async function alarm(req, res) {
     await nova.resizeServer(token, servers[serverIndex].id, nextFlavorId, status)
   }
 
+  db.set(`${stackId}.${groupName}`, { updatedAt: new Date(), scaleInProgress: false }).write()
   res.send()
 }
 
