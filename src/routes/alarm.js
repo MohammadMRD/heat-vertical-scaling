@@ -11,6 +11,24 @@ function getAlarmRoutes() {
   return router
 }
 
+function getServerGroupId(query) {
+  const keys = Object.keys(query)
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = query[key]
+
+    if (key === 'server_group') return value
+
+    if (typeof value === 'object')
+    {
+      const id = getServerGroupId(value)
+
+      if (id) return id
+    }
+  }
+}
+
 async function alarm(req, res) {
   const { alarmId } = req.body
   let { action, flavors: reqFlavorsList, group: groupName, cooldown = 0 } = req.query
@@ -20,14 +38,18 @@ async function alarm(req, res) {
     name: process.env.OPENSTACK_USERNAME,
     password: process.env.OPENSTACK_PASSWORD,
     userDomainId: process.env.OPENSTACK_USER_DOMAIN_ID,
-    userTenantName: process.env.OPENSTACK_USER_TENANT_NAME,
     projectName: process.env.OPENSTACK_PROJECT_NAME,
     projectDomainId: process.env.OPENSTACK_PROJECT_DOMAIN_ID,
   })
 
   const { project_id: projectId, ...alarm } = await aodh.getAlarm(token, alarmId)
   const alarmRules = alarm[`${alarm.type}_rule`]
-  const stackId = JSON.parse(alarmRules.query)['='].server_group
+  const stackId =  getServerGroupId(JSON.parse(alarmRules.query))
+
+  if (!stackId) {
+    console.log('Cannot find stack Id', alarmRules)
+    return res.status(500).send()
+  }
 
   const db = getDb()
   const { updatedAt, scaleInProgress } = db.get(`${stackId}.${groupName}`)?.value() || {}
@@ -38,9 +60,7 @@ async function alarm(req, res) {
     return
   }
 
-  db.set(`${stackId}.${groupName}.scaleInProgress`, true).write()
-
-  const allServers = await nova.getServers(token)
+  const allServers = await nova.getServers(token, projectId)
   const flavors = await nova.getFlavors(token)
   const reqFlavors = reqFlavorsList.map(f => flavors.find(flavor => [flavor.id, flavor.name].includes(f)) || {})
   const servers = allServers?.filter(server => server.metadata?.[groupName] === stackId) || []
@@ -58,10 +78,16 @@ async function alarm(req, res) {
     const { id: nextFlavorId, status } = flavors.find(({ id, name }) =>
       [id, name].includes(reqFlavorsList[nextFlavorIndex]),
     )
-    await nova.resizeServer(token, servers[serverIndex].id, nextFlavorId, status)
+
+    db.set(`${stackId}.${groupName}.scaleInProgress`, true).write()
+
+    await nova.resizeServer(token, servers[serverIndex].id, nextFlavorId, status).finally(() => {
+      db.set(`${stackId}.${groupName}`, { scaleInProgress: false }).write()
+    })
+
+    db.set(`${stackId}.${groupName}`, { updatedAt: new Date()}).write()
   }
 
-  db.set(`${stackId}.${groupName}`, { updatedAt: new Date(), scaleInProgress: false }).write()
   res.send()
 }
 

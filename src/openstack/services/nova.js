@@ -30,12 +30,16 @@ exports.getServer = async function (token, serverId) {
 }
 
 // Get all servers
-exports.getServers = async function (token) {
+exports.getServers = async function (token, projectId) {
   const SERVER_URL = UTILS.combineURLs(NOVA_URL, `servers/detail`)
+  const params = { all_tenants: 1 }
+
+  projectId && (params.project_id = projectId)
 
   const res = await axios({
     method: 'GET',
     url: SERVER_URL,
+    params,
     headers: { 'X-Auth-Token': token },
   })
 
@@ -47,17 +51,21 @@ exports.resizeServer = async function (token, serverId, flavorId, status) {
   const RESIZE_URL = UTILS.combineURLs(NOVA_URL, `servers/${serverId}/action`)
 
   if (status !== 'VERIFY_RESIZE') {
-    await axios({
-      method: 'POST',
-      url: RESIZE_URL,
-      headers: { 'X-Auth-Token': token },
-      data: {
-        resize: {
-          flavorRef: flavorId,
-          'OS-DCF:diskConfig': 'AUTO',
+    try {
+      await axios({
+        method: 'POST',
+        url: RESIZE_URL,
+        headers: { 'X-Auth-Token': token },
+        data: {
+          resize: {
+            flavorRef: flavorId,
+            'OS-DCF:diskConfig': 'AUTO',
+          },
         },
-      },
-    })
+      })
+    } catch (error) {
+      if (error?.response?.status !== 409) throw error
+    }
   }
 
   let serverStatus = ''
