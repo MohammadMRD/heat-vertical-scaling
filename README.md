@@ -3,15 +3,24 @@
 ## Getting started
 1. Clone project
 2. Go to the project directory
-2. Run `npm start`
-3. Create a heat template
-4. Define a scaling resource using `OS::Heat::AutoScalingGroup`
-5. Define an alarm and set the URL of this service to alarm's actions(alarm_action, ok_action, ...)
+3. Create `.env` file
+> * PORT
+> * OPENSTACK_USERNAME
+> * OPENSTACK_PASSWORD
+> * OPENSTACK_USER_DOMAIN_ID
+> * OPENSTACK_PROJECT_NAME
+> * OPENSTACK_PROJECT_DOMAIN_ID
+
+5. Run `npm start`
+6. Create a heat template
+7. Define a scaling resource using `OS::Heat::AutoScalingGroup`
+8. Define an alarm and set the URL of this service to alarm's actions(alarm_action, ok_action, ...)
 
 ## Request parameters
 - **action**: `up` or `down`
 - **flavors**: List of flavors id or name
-- **group**: Scaling resource's name (optional)
+- **group**: Scaling resource's name
+- **cooldown**: Cooldown period, in seconds (default: 0)
 
 ## HOT example
 
